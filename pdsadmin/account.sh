@@ -56,8 +56,8 @@ elif [[ "${SUBCOMMAND}" == "create" ]]; then
     read -p "Enter a handle (e.g. alice.${PDS_HOSTNAME}): " HANDLE
   fi
 
-  echo "EMAIL: ${EMAIL}"
-  echo "HANDLE: ${HANDLE}"
+  echo EMAIL
+  echo HANDLE
 
   if [[ "${EMAIL}" == "" || "${HANDLE}" == "" ]]; then
     echo "ERROR: missing EMAIL and/or HANDLE parameters." >/dev/stderr
@@ -71,16 +71,10 @@ elif [[ "${SUBCOMMAND}" == "create" ]]; then
     --data '{"useCount": 1}' \
     "https://${PDS_HOSTNAME}/xrpc/com.atproto.server.createInviteCode" | jq --raw-output '.code'
   )"
-
-  echo "PASSWORD: ${PASSWORD}"
-  echo "INVITE_CODE: ${INVITE_CODE}"
-
   RESULT="$(curl_cmd_post_nofail \
     --data "{\"email\":\"${EMAIL}\", \"handle\":\"${HANDLE}\", \"password\":\"${PASSWORD}\", \"inviteCode\":\"${INVITE_CODE}\"}" \
     "https://${PDS_HOSTNAME}/xrpc/com.atproto.server.createAccount"
   )"
-
-  echo "RESULT: ${RESULT}"
 
   DID="$(echo $RESULT | jq --raw-output '.did')"
   if [[ "${DID}" != did:* ]]; then
