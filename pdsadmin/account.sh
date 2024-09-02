@@ -69,15 +69,17 @@ elif [[ "${SUBCOMMAND}" == "create" ]]; then
   
   # Debugging: Display the data being sent to the createInviteCode endpoint
   echo "Requesting invite code..."
-  
   INVITE_CODE_RESPONSE=$(curl_cmd_post \
     --user "admin:${PDS_ADMIN_PASSWORD}" \
     --data '{"useCount": 1}' \
-    "https://${PDS_HOSTNAME}/xrpc/com.atproto.server.createInviteCode"
+    "https://${PDS_HOSTNAME}/xrpc/com.atproto.server.createInviteCode" 2>&1
   )
-  
-  # Debugging: Display the response from the invite code request
   echo "INVITE_CODE_RESPONSE: ${INVITE_CODE_RESPONSE}"
+  
+  if [[ $? -ne 0 ]]; then
+    echo "Failed to request invite code"
+    exit 1
+  fi
 
   INVITE_CODE="$(echo "${INVITE_CODE_RESPONSE}" | jq --raw-output '.code')"
   
