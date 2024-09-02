@@ -56,6 +56,9 @@ elif [[ "${SUBCOMMAND}" == "create" ]]; then
     read -p "Enter a handle (e.g. alice.${PDS_HOSTNAME}): " HANDLE
   fi
 
+  echo EMAIL
+  echo HANDLE
+
   if [[ "${EMAIL}" == "" || "${HANDLE}" == "" ]]; then
     echo "ERROR: missing EMAIL and/or HANDLE parameters." >/dev/stderr
     echo "Usage: $0 ${SUBCOMMAND} <EMAIL> <HANDLE>" >/dev/stderr
