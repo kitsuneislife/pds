@@ -45,65 +45,54 @@ if [[ "${SUBCOMMAND}" == "list" ]]; then
 #
 # account create
 #
-elif [[ "${SUBCOMMAND}" == "create" ]]; then
+if [[ "${SUBCOMMAND}" == "create" ]]; then
   EMAIL="${2:-}"
   HANDLE="${3:-}"
 
-  if [[ -z "${EMAIL}" ]]; then
+  if [[ "${EMAIL}" == "" ]]; then
     read -p "Enter an email address (e.g. alice@${PDS_HOSTNAME}): " EMAIL
   fi
-  if [[ -z "${HANDLE}" ]]; then
+  if [[ "${HANDLE}" == "" ]]; then
     read -p "Enter a handle (e.g. alice.${PDS_HOSTNAME}): " HANDLE
   fi
 
   echo "EMAIL: ${EMAIL}"
   echo "HANDLE: ${HANDLE}"
 
-  if [[ -z "${EMAIL}" || -z "${HANDLE}" ]]; then
-    echo "ERROR: missing EMAIL and/or HANDLE parameters." >&2
-    echo "Usage: $0 ${SUBCOMMAND} <EMAIL> <HANDLE>" >&2
+  if [[ "${EMAIL}" == "" || "${HANDLE}" == "" ]]; then
+    echo "ERROR: missing EMAIL and/or HANDLE parameters." >/dev/stderr
+    echo "Usage: $0 ${SUBCOMMAND} <EMAIL> <HANDLE>" >/dev/stderr
     exit 1
   fi
 
   PASSWORD="$(openssl rand -base64 30 | tr -d "=+/" | cut -c1-24)"
-  
-  # Debugging: Display the data being sent to the createInviteCode endpoint
   echo "Requesting invite code..."
+  
   INVITE_CODE_RESPONSE=$(curl_cmd_post \
     --user "admin:${PDS_ADMIN_PASSWORD}" \
     --data '{"useCount": 1}' \
     "https://${PDS_HOSTNAME}/xrpc/com.atproto.server.createInviteCode" 2>&1
   )
-  echo "INVITE_CODE_RESPONSE: ${INVITE_CODE_RESPONSE}"
   
-  if [[ $? -ne 0 ]]; then
-    echo "Failed to request invite code"
-    exit 1
-  fi
+  echo "INVITE_CODE_RESPONSE: ${INVITE_CODE_RESPONSE}"
 
   INVITE_CODE="$(echo "${INVITE_CODE_RESPONSE}" | jq --raw-output '.code')"
-  
-  # Debugging: Display the invite code
-  echo "INVITE_CODE: ${INVITE_CODE}"
 
-  # Debugging: Display the data being sent to the createAccount endpoint
-  echo "Creating account with data:"
-  echo "{\"email\":\"${EMAIL}\", \"handle\":\"${HANDLE}\", \"password\":\"${PASSWORD}\", \"inviteCode\":\"${INVITE_CODE}\"}"
+  echo "PASSWORD: ${PASSWORD}"
+  echo "INVITE_CODE: ${INVITE_CODE}"
 
   RESULT="$(curl_cmd_post_nofail \
     --data "{\"email\":\"${EMAIL}\", \"handle\":\"${HANDLE}\", \"password\":\"${PASSWORD}\", \"inviteCode\":\"${INVITE_CODE}\"}" \
     "https://${PDS_HOSTNAME}/xrpc/com.atproto.server.createAccount"
   )"
 
-  # Debugging: Display the response from the createAccount request
   echo "RESULT: ${RESULT}"
 
-  DID="$(echo "${RESULT}" | jq --raw-output '.did')"
-  
+  DID="$(echo $RESULT | jq --raw-output '.did')"
   if [[ "${DID}" != did:* ]]; then
-    ERR="$(echo "${RESULT}" | jq --raw-output '.message' 2>/dev/null)"
-    echo "ERROR: ${ERR:-Unknown error}" >&2
-    echo "Usage: $0 ${SUBCOMMAND} <EMAIL> <HANDLE>" >&2
+    ERR="$(echo ${RESULT} | jq --raw-output '.message')"
+    echo "ERROR: ${ERR}" >/dev/stderr
+    echo "Usage: $0 ${SUBCOMMAND} <EMAIL> <HANDLE>" >/dev/stderr
     exit 1
   fi
 
