@@ -61,7 +61,7 @@ elif [[ "${SUBCOMMAND}" == "create" ]]; then
 
   if [[ "${EMAIL}" == "" || "${HANDLE}" == "" ]]; then
     echo "ERROR: missing EMAIL and/or HANDLE parameters." >/dev/stderr
-    echo "Usage: $0 ${SUBCOMMAND} <EMAIL> <HANDLE>" >/dev/stderr
+    echo "xUsage: $0 ${SUBCOMMAND} <EMAIL> <HANDLE>" >/dev/stderr
     exit 1
   fi
 
